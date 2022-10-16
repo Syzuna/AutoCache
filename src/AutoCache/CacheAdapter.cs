@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using AutoCache.Models;
+﻿using AutoCache.Models;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace AutoCache
 {
@@ -55,7 +55,7 @@ namespace AutoCache
                 if (updatedCacheHit)
                     (cacheValue, cacheHit) = (updatedCacheValue, updatedCacheHit);
 
-                _logger.LogD((cacheHit ? "succeed" : "failed") + " with result " + cacheValue.Value);
+                _logger.LogD((cacheHit ? "succeed" : "failed") + " with result " + cacheValue!.Value);
 
                 if (cacheHit)
                     return cacheValue.Value;
@@ -63,8 +63,7 @@ namespace AutoCache
             throw new Exception("Cache update timeout expired.");
         }
 
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks
-            = new ConcurrentDictionary<string, SemaphoreSlim>();
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
 
         private async Task<(CacheValue<T>?, bool)> ExecuteExclusiveTask<T>(
             string key,
@@ -139,7 +138,7 @@ namespace AutoCache
             {
                 _logger.LogE("Cannot fetch from source. " + ex.Message);
             }
-            return (default, false);
+            return (default, false)!;
         }
 
         private async Task SetTheCache<T>(string key, CacheValue<T> cacheValue, TimeSpan timeout)
